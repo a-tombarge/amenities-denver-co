@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset=utf-8 />
+  <title>Amenities in Denver, CO</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+  <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: whitesmoke;
+      font-family: Lato, sans-serif;
+      color: #0D0000;
+    }
+
+    header {
+      padding: 6px 10%;
+    }
+
+    h1 {
+      display: inline-block;
+      margin-right: 20px;
+      color: #001323;
+    }
+
+    h2 {
+      display: inline-block;
+      color: #001323;
+    }
+
+    #map {
+      width: 80%;
+      height: 540px;
+      margin: 10px auto;
+    }
+
+    footer {
+      padding: 6px 10%;
+      width: 80%;
+    }
+
+    p {
+      font-size: 1em;
+      color: #001323;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Amenities in Denver, Colorado</h1>
+    <h2>After school programs, fire stations, and stores with food</h2>
+  </header>
+
+  <div id='map'></div>
+
+  <footer>
+    <p>Click the map and it will highlight the fire stations, stores with food, and after school programs within 1 kilometer of the click point.</p>
+    <p>Map authored by Alisande Tombarge with data obtained from Denver's <a target="_blank" href="https://www.denvergov.org/opendata/">Open Data Catalog.</a></p>
+
+
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+  <script src="data/denver-fire-stations.js"></script>
+  <script src="data/after-school-programs.js"></script>
+  <script src="data/denver-food-stores.js"></script>
+  <script>
+    var map = L.map('map', {
+      center: [39.7256, -104.9252],
+      zoom: 11,
+    });
+
+    var tiles = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // BEGIN WRITING YOUR SOLUTION CODE HERE
+
+//setting the basic styles for the map layers
+    var commonStyles = {
+      weight: 1,
+      stroke: 0,
+      radius: 6,
+      fillOpacity: 1
+    };
+
+//calling and displaying the fire stations
+    var fireStations = L.geoJson(stations, {
+      pointToLayer: function(feature,latlng) {
+        return L.circleMarker(latlng, commonStyles);
+      },
+
+      style: function(feature) {
+        return {
+          color: '#e3bba6',
+          fillColor: '#e3bba6'
+        }
+      },
+      onEachFeature: function(feature, layer) {
+        var fsTooltip = "<b>" + feature.properties.STATION_NU + "</b>";
+           layer.bindTooltip(fsTooltip);
+      }
+    }).addTo(map);
+
+//calling and displaying the after school Programs
+    var schoolPrograms = L.geoJson(programs, {
+      pointToLayer: function(feature,latlng) {
+        return L.circleMarker(latlng, commonStyles);
+      },
+
+      style: function(feature) {
+        return {
+          color: '#b7e5f4',
+          fillColor: '#b7e5f4'
+        }
+      },
+      onEachFeature: function(feature, layer) {
+        var spTooltip = "<b>" + feature.properties.ORGANIZATI + "</b>";
+           layer.bindTooltip(spTooltip);
+      }
+    }).addTo(map);
+
+//calling and displaying the food stores
+    var foodStores = L.geoJson(stores, {
+      pointToLayer: function(feature,latlng) {
+        return L.circleMarker(latlng, commonStyles);
+      },
+
+      style: function(feature) {
+        return {
+          color: '#a6afe3',
+          fillColor: '#a6afe3'
+        }
+      },
+      onEachFeature: function(feature, layer) {
+        var foodStoresTooltip = "<b>" + feature.properties.STORE_NAME + "</b>";
+           layer.bindTooltip(foodStoresTooltip);
+      }
+    }).addTo(map);
+
+//defining what happans when user clicks on the map with each of the three layers
+    var amenitiesGroup = new L.layerGroup();
+
+    map.on('click', function(e) {
+
+        foodStores.eachLayer(function(layer) {
+            var distance = e.latlng.distanceTo(layer.getLatLng())/1000; // distance as km
+
+            if(distance > 1) {
+                layer.setStyle({
+                    stroke: false,
+                    fill: true,
+                    fillOpacity: .1
+                });
+            } else {
+                layer.setStyle({
+                    stroke: false,
+                    fill: true,
+                    fillOpacity: 1
+                });
+            }
+        });
+
+        fireStations.eachLayer(function(layer) {
+            var distance = e.latlng.distanceTo(layer.getLatLng())/1000; // distance as km
+
+            if(distance > 1) {
+                layer.setStyle({
+                    stroke: false,
+                    fill: true,
+                    fillOpacity: .1
+                }).addTo(amenitiesGroup)
+            } else {
+                layer.setStyle({
+                    stroke: false,
+                    fill: true,
+                    fillOpacity: 1
+                });
+            }
+        });
+
+        schoolPrograms.eachLayer(function(layer) {
+            var distance = e.latlng.distanceTo(layer.getLatLng())/1000; // distance as km
+
+            if(distance > 1) {
+                layer.setStyle({
+                    stroke: false,
+                    fill: true,
+                    fillOpacity: .1
+                }).addTo(amenitiesGroup)
+            } else {
+                layer.setStyle({
+                    stroke: false,
+                    fill: true,
+                    fillOpacity: 1
+                });
+            }
+        });
+        amenitiesGroup.addTo(map);
+    });
+
+
+
+//bulding legend
+    var sourcesLabels = {
+      "<b style='color:#b7e5f4'; text-shadow: 1px 1px 2px #333;>After School Programs</b>": schoolPrograms,
+      "<b style='color:#a6afe3'>Stores with Food</b>": foodStores,
+      "<b style='color:#e3bba6'>Fire Stations</b>": fireStations
+    };
+
+//adding legend to the map
+    L.control.layers(null, sourcesLabels, {
+      collapsed: false
+    }).addTo(map);
+
+  </script>
+
+</body>
+
+</html>
